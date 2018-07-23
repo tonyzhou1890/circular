@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>circular1</title>
+  <style>
+    .container {
+      width: 522px;
+      height: 222px;
+      box-sizing: border-box;
+      padding: 10px;
+      border: 1px solid gray;
+      position: relative;
+      margin: auto;
+      top: 30px;
+      overflow: hidden;
+    }
+    ul, ol {
+      list-style: none;
+      padding: 0px;
+      margin: 0px;
+    }
+
+    ul li {
+      float: left;
+    }
+
+    .box {
+      width: 500px;
+      height: 200px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pics {
+      width: 1000%;
+      position: absolute;
+      left: -500px;
+    }
+
+    .box img {
+      width: 500px;
+      height: 200px;
+    }
+
+    .container ol {
+      position: absolute;
+      bottom: 20px;
+      text-align: center;
+      width: 500px;
+    }
+
+    .container ol li {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: white;
+      color: #333;
+      line-height: 20px;
+      text-align: center;
+      margin-right: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .container ol li:last-child {
+      margin-right: 0;
+    }
+
+    .container ol li.cur {
+      background: purple;
+      color: white;
+    }
+
+    .container .left, .container .right {
+      position: absolute;
+      width: 40px;
+      height: 60px;
+      line-height: 60px;
+      text-align: center;
+      color: white;
+      background-color: rgba(0, 0, 0, .3);
+      cursor: pointer;
+      top: 100px;
+      margin-top: -30px;
+      display: none;
+      user-select: none;
+    }
+
+    .container:hover .left, .container:hover .right {
+      display: block;
+    }
+
+    .container .left {
+      left: 10px;
+    }
+
+    .container .right {
+      right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="box">
+      <ul class="pics">
+        <li><img src="../images/1.jpg"></li>
+        <li><img src="../images/2.jpg"></li>
+        <li><img src="../images/3.jpg"></li>
+        <li><img src="../images/4.jpg"></li>
+        <li><img src="../images/5.jpg"></li>
+      </ul>
+    </div>
+    <div class="left"><</div>
+    <div class="right">></div>
+  </div>
+
+  <script>
+    //动画函数
+    function animate(obj, target){
+      clearInterval(obj.timer);
+      let frameTime = Math.abs((target - obj.offsetLeft) / 62);
+      let speed = target < obj.offsetLeft ? -frameTime : frameTime;
+      obj.timer = setInterval( () => {
+        let leftDistance = Math.abs(target - obj.offsetLeft);
+        if( leftDistance < Math.abs(speed) ){
+          obj.style.left = target + 'px';
+        }else{
+          obj.style.left = obj.offsetLeft + speed + 'px';
+        }
+      }, 16);
+    }
+
+    //获取相关元素，在前后添加图片，生成小点
+    let container = document.getElementsByClassName('container')[0];
+    let pics = document.getElementsByClassName('pics')[0];
+    let picWidth = pics.children[0].offsetWidth;
+    let left = document.getElementsByClassName('left')[0];
+    let right = document.getElementsByClassName('right')[0];
+    pics.appendChild(pics.children[0].cloneNode(true));
+    pics.insertBefore(pics.children[pics.children.length-2].cloneNode(true),pics.children[0]);
+
+    let ol = document.createElement('ol');
+    for( let i = 0, len = pics.children.length-2; i < len; i++){
+      let li = document.createElement('li');
+      li.innerHTML = i + 1;
+      ol.appendChild(li);
+    }
+    container.appendChild(ol);
+
+    //控制变量
+    let timer = null;
+    let curImg = 1;
+    let dot = 0;
+
+    //改变小点样式
+    function dotStyle(){
+      for(let i = 0, len = ol.children.length; i< len; i++){
+        if( dot === i){
+          ol.children[i].className = 'cur';
+        }else {
+          ol.children[i].className = '';
+        }
+      }
+    }
+
+    //点击小点
+    for(let i = 0, len = ol.children.length; i < len; i++){
+      ol.children[i].index = i;
+      ol.children[i].addEventListener('click',function(){
+        clearInterval(timer);
+        //修正位置
+        if(curImg === pics.children.length - 1){
+          pics.style.left = pics.offsetLeft + picWidth * (pics.children.length - 2) + 'px';
+        }
+        if(curImg === 0){
+          pics.style.left = pics.offsetLeft - picWidth * (pics.children.length - 2) + 'px';
+        }
+        
+
+        dot = this.index;
+        curImg = this.index + 1;
+        dotStyle();
+        animate(pics,- picWidth * curImg);
+        auto();
+      });
+    }
+
+    //索引限定
+    function range(index, step, min, max){
+      index += step;
+      if( index > max){
+        index = index - max - 1 + min;
+      }
+      if( index < min){
+        index = max - (min - index - 1);
+      }
+      return index;
+    }
+
+    //修正
+    function amend(obj){
+      if(curImg === obj.children.length - 1){
+        curImg = 1;
+      }
+      if(curImg === 0){
+        curImg = obj.children.length - 2;
+      }
+      obj.style.left = - curImg * picWidth + 'px';
+    }
+
+    //自动播放
+    function auto(){
+      clearInterval(timer);
+      timer = setInterval( () => {
+        if(curImg === pics.children.length - 1){
+          amend(pics);
+        }
+        curImg = range(curImg, 1, 0, pics.children.length - 1);
+        dot = range(dot, 1, 0, ol.children.length - 1);
+        dotStyle();
+        animate(pics, - picWidth * curImg);
+      },2000)
+    }
+
+    //鼠标悬浮图片区
+    container.addEventListener('mouseenter',function(){
+      clearInterval(timer);
+    })
+    container.addEventListener('mouseleave',function(){
+      auto();
+    })
+
+    //是否正在进行动画
+    function isAnimate(obj){
+      if(obj.offsetLeft % picWidth){
+        return true;
+      }else{
+        return false;
+      }
+    }
+
+    //向左或者向右
+    //参数：'left'  'right'
+    function LOR(direction){
+      if(isAnimate(pics)){
+        return;
+      }
+      let step = null;
+      if('left' === direction){
+        step = -1;
+      }else{
+        step = 1;
+      }
+
+      if( 0 === curImg || pics.children.length - 1 === curImg){
+        amend(pics);
+      }
+
+      curImg = range(curImg, step, 0, pics.children.length - 1);
+      dot = range(dot, step, 0, ol.children.length - 1)
+      dotStyle();
+      animate(pics, - curImg * picWidth);
+    }
+
+    //点击向左
+    left.addEventListener('click', function(){
+      LOR('left');
+    });
+    //点击向右
+    right.addEventListener('click', function(){
+      LOR('right');
+    });
+
+    //初始化
+    curImg = 1;
+    dot = 0;
+    dotStyle();
+    animate(pics,- picWidth * curImg);
+    auto();
+  </script>
+</body>
+</html>
