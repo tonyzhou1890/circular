@@ -171,7 +171,6 @@
     for(let i = 0, len = ol.children.length; i < len; i++){
       ol.children[i].index = i;
       ol.children[i].addEventListener('click',function(){
-        clearInterval(timer);
         //修正位置
         if(curImg === pics.children.length - 1){
           pics.style.left = pics.offsetLeft + picWidth * (pics.children.length - 2) + 'px';
@@ -185,7 +184,6 @@
         curImg = this.index + 1;
         dotStyle();
         animate(pics,- picWidth * curImg);
-        auto();
       });
     }
 
